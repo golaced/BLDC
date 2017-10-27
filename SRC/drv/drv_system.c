@@ -330,7 +330,7 @@ void systemInit(void)
     initFirstOrderFilter();
     initPID();
     initSinArray();
-
+    TIM8_Cap_Init(0XFFFF,72-1);
     //orientIMU();
 
     //initMPU6050();

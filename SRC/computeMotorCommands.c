@@ -87,8 +87,9 @@ float autoPan(float motorPos, float setpoint)
 ///////////////////////////////////////////////////////////////////////////////
 // Compute Motor Commands
 ///////////////////////////////////////////////////////////////////////////////
-float spd[3]={0.01,0.01,0.01};
-float spd_out[3]={0};
+float spd[3]={0,0,0};
+float spd_out[3]={0},spd_out_flt[3]={0};
+float flt=0.68;
 void computeMotorCommands(float dt)
 {
     holdIntegrators = false;//启用积分作用
@@ -114,11 +115,13 @@ void computeMotorCommands(float dt)
 					//	相当于加上这个数的正值），作为本次PID结果
 
         pidCmdPrev[ROLL] = pidCmd[ROLL];//保存本次PID输出结果到 pidCmdPrev[ROLL] 作为旧的值（相对于下次）。
-         if(spd[ROLL]!=0){spd_out[ROLL]-=dt*spd[ROLL];
-					setRollMotor(spd_out[ROLL], (int)eepromConfig.rollPower);// roll power is 50 in default 
-				 }
-				// else
-        // setRollMotor(pidCmd[ROLL], (int)eepromConfig.rollPower);// roll power is 50 in default
+         if(spd[ROLL]!=0)
+					 spd_out[ROLL]-=dt*spd[ROLL];
+				 else 
+					 spd_out[ROLL]+=dt*exp_rad[ROLL];
+         spd_out_flt[ROLL]= spd_out[ROLL]*flt+(1-flt)*spd_out_flt[ROLL];
+         setRollMotor(spd_out_flt[ROLL], (int)eepromConfig.rollPower);// roll power is 50 in default 				 
+			
     }
 
     ///////////////////////////////////
@@ -142,9 +145,9 @@ void computeMotorCommands(float dt)
         pidCmdPrev[PITCH] = pidCmd[PITCH];//保存本次PID输出结果到 pidCmdPrev[PITCH] 作为旧的值（相对于下次）。
     if(spd[PITCH]!=0){spd_out[PITCH]-=dt*spd[PITCH];
 					setPitchMotor(spd_out[PITCH], (int)eepromConfig.pitchPower);// roll power is 50 in default 
-				 }
-				// else
-       // setPitchMotor(pidCmd[PITCH], (int)eepromConfig.pitchPower);
+				 }else {spd_out[PITCH]+=dt*exp_rad[PITCH];
+				  setRollMotor(spd_out[PITCH], (int)eepromConfig.pitchPower);// roll power is 50 in default
+         }			
     }
 
     ///////////////////////////////////

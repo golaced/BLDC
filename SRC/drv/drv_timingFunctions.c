@@ -40,6 +40,35 @@
 // Timing Functions Initialization
 ///////////////////////////////////////////////////////////////////////////////
 #include "stm32f10x.h"
+
+#define GET_TIME_NUM 20
+volatile float Cycle_T[GET_TIME_NUM][3];
+
+enum
+{
+	NOW = 0,
+	OLD,
+	NEW,
+};
+
+u32 Get_Cycle_T(u8 item)	
+{
+	Cycle_T[item][OLD] = Cycle_T[item][NOW];	//??????
+	Cycle_T[item][NOW] = micros(); //?????
+	Cycle_T[item][NEW] = ( ( Cycle_T[item][NOW] - Cycle_T[item][OLD] ) );//?????(??)
+	return Cycle_T[item][NEW];
+}
+
+void Cycle_Time_Init()
+{
+	u8 i;
+	for(i=0;i<GET_TIME_NUM;i++)
+	{
+		Get_Cycle_T(i);
+	}
+
+}
+
 void timingFunctionsInit(void)
 {
     TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
@@ -55,6 +84,9 @@ void timingFunctionsInit(void)
     TIM_TimeBaseInit(TIM6, &TIM_TimeBaseStructure);
 
     TIM_SetCounter(TIM6, 4000);  // First pass value
+	  Cycle_Time_Init();
 }
+
+
 
 ///////////////////////////////////////////////////////////////////////////////

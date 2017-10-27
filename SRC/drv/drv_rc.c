@@ -153,3 +153,223 @@ uint16_t rxRead(uint8_t channel)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+
+TIM_ICInitTypeDef  TIM8_ICInitStructure;
+
+void TIM8_Cap_Init(u16 arr,u16 psc)
+{	 
+	GPIO_InitTypeDef GPIO_InitStructure;
+	TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
+ 	NVIC_InitTypeDef NVIC_InitStructure;
+
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM8, ENABLE);	//使能TIM2时钟
+ 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);  //使能GPIOA时钟
+	
+	GPIO_InitStructure.GPIO_Pin  = GPIO_Pin_6|GPIO_Pin_7|GPIO_Pin_8|GPIO_Pin_9;  //PA0 清除之前设置  
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD; //PA0 输入  
+	GPIO_Init(GPIOC, &GPIO_InitStructure);
+	GPIO_ResetBits(GPIOC,GPIO_Pin_6);						 //PA0 下拉
+	GPIO_ResetBits(GPIOC,GPIO_Pin_7);						 //PA0 下拉
+	GPIO_ResetBits(GPIOC,GPIO_Pin_8);						 //PA0 下拉
+	GPIO_ResetBits(GPIOC,GPIO_Pin_9);						 //PA0 下拉
+	//初始化定时器2 TIM2	 
+	TIM_TimeBaseStructure.TIM_Period = arr; //设定计数器自动重装值 
+	TIM_TimeBaseStructure.TIM_Prescaler =psc; 	//预分频器   
+	TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1; //设置时钟分割:TDTS = Tck_tim
+	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;  //TIM向上计数模式
+	TIM_TimeBaseInit(TIM8, &TIM_TimeBaseStructure); //根据TIM_TimeBaseInitStruct中指定的参数初始化TIMx的时间基数单位
+  
+	//初始化TIM2输入捕获参数
+	TIM8_ICInitStructure.TIM_Channel = TIM_Channel_1; //CC1S=01 	选择输入端 IC1映射到TI1上
+  TIM8_ICInitStructure.TIM_ICPolarity = TIM_ICPolarity_Rising;	//上升沿捕获
+  TIM8_ICInitStructure.TIM_ICSelection = TIM_ICSelection_DirectTI; //映射到TI1上
+  TIM8_ICInitStructure.TIM_ICPrescaler = TIM_ICPSC_DIV1;	 //配置输入分频,不分频 
+  TIM8_ICInitStructure.TIM_ICFilter = 0x00;//IC1F=0000 配置输入滤波器 不滤波
+  TIM_ICInit(TIM8, &TIM8_ICInitStructure);
+
+	//初始化TIM2输入捕获参数
+	TIM8_ICInitStructure.TIM_Channel = TIM_Channel_2; //CC1S=01 	选择输入端 IC1映射到TI1上
+  TIM8_ICInitStructure.TIM_ICPolarity = TIM_ICPolarity_Rising;	//上升沿捕获
+  TIM8_ICInitStructure.TIM_ICSelection = TIM_ICSelection_DirectTI; //映射到TI1上
+  TIM8_ICInitStructure.TIM_ICPrescaler = TIM_ICPSC_DIV1;	 //配置输入分频,不分频 
+  TIM8_ICInitStructure.TIM_ICFilter = 0x00;//IC1F=0000 配置输入滤波器 不滤波
+  TIM_ICInit(TIM8, &TIM8_ICInitStructure);
+	//初始化TIM2输入捕获参数
+	TIM8_ICInitStructure.TIM_Channel = TIM_Channel_3; //CC1S=01 	选择输入端 IC1映射到TI1上
+  TIM8_ICInitStructure.TIM_ICPolarity = TIM_ICPolarity_Rising;	//上升沿捕获
+  TIM8_ICInitStructure.TIM_ICSelection = TIM_ICSelection_DirectTI; //映射到TI1上
+  TIM8_ICInitStructure.TIM_ICPrescaler = TIM_ICPSC_DIV1;	 //配置输入分频,不分频 
+  TIM8_ICInitStructure.TIM_ICFilter = 0x00;//IC1F=0000 配置输入滤波器 不滤波
+  TIM_ICInit(TIM8, &TIM8_ICInitStructure);
+	//初始化TIM2输入捕获参数
+	TIM8_ICInitStructure.TIM_Channel = TIM_Channel_4; //CC1S=01 	选择输入端 IC1映射到TI1上
+  TIM8_ICInitStructure.TIM_ICPolarity = TIM_ICPolarity_Rising;	//上升沿捕获
+  TIM8_ICInitStructure.TIM_ICSelection = TIM_ICSelection_DirectTI; //映射到TI1上
+  TIM8_ICInitStructure.TIM_ICPrescaler = TIM_ICPSC_DIV1;	 //配置输入分频,不分频 
+  TIM8_ICInitStructure.TIM_ICFilter = 0x00;//IC1F=0000 配置输入滤波器 不滤波
+  TIM_ICInit(TIM8, &TIM8_ICInitStructure);
+	//中断分组初始化
+	NVIC_InitStructure.NVIC_IRQChannel = TIM8_CC_IRQn;  //TIM2中断
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;  //先占优先级2级
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;  //从优先级0级
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; //IRQ通道被使能
+	NVIC_Init(&NVIC_InitStructure);  //根据NVIC_InitStruct中指定的参数初始化外设NVIC寄存器 
+	
+	TIM_ITConfig(TIM8,TIM_IT_Update|TIM_IT_CC1,ENABLE);//允许更新中断 ,允许CC1IE捕获中断	
+	TIM_ITConfig(TIM8,TIM_IT_Update|TIM_IT_CC2,ENABLE);//允许更新中断 ,允许CC1IE捕获中断	
+	TIM_ITConfig(TIM8,TIM_IT_Update|TIM_IT_CC3,ENABLE);//允许更新中断 ,允许CC1IE捕获中断	
+	TIM_ITConfig(TIM8,TIM_IT_Update|TIM_IT_CC4,ENABLE);//允许更新中断 ,允许CC1IE捕获中断	
+  TIM_Cmd(TIM8,ENABLE ); 	//使能定时器2
+ 
+}
+float attitude[3];
+float rad[3];
+float pos[3];
+u8 state_dj[5]={0,0,0,0,0};
+u8 state_dj_rx[5]={0,0,0,0,0};
+u8 IO_STATE[5]={0,0,0,0,0};
+u8 IO_STATER[5]={0,0,0,0,0};
+u32 cnt_sample1,now_dj[4]={0},lastUpdate_dj[4]={0};
+u8  TIM2CH1_CAPTURE_STA[4]={0};	//输入捕获状态		    				
+u16	TIM2CH1_CAPTURE_VAL[4]={0};	//输入捕获值
+#define MAX_ENCODER 917
+//定时器5中断服务程序	 
+int max_encoder_cal=0;
+float dt_encoder_update;
+void TIM8_CC_IRQHandler(void)
+{ 
+	static float att_reg[4];
+  u8 sel=0;
+	
+ 	if((TIM2CH1_CAPTURE_STA[sel]&0X80)==0)//还未成功捕获	
+	{	  
+		if (TIM_GetITStatus(TIM8, TIM_IT_Update) != RESET)
+		 
+		{	    
+			if(TIM2CH1_CAPTURE_STA[sel]&0X40)//已经捕获到高电平了
+			{
+				if((TIM2CH1_CAPTURE_STA[sel]&0X3F)==0X3F)//高电平太长了
+				{
+					TIM2CH1_CAPTURE_STA[sel]|=0X80;//标记成功捕获了一次
+					TIM2CH1_CAPTURE_VAL[sel]=0XFFFF;
+				}else TIM2CH1_CAPTURE_STA[sel]++;
+			}	
+     	
+		}
+	if (TIM_GetITStatus(TIM8, TIM_IT_CC1) != RESET)//捕获1发生捕获事件
+		{	
+			if(TIM2CH1_CAPTURE_STA[sel]&0X40)		//捕获到一个下降沿 		
+			{	  			
+				TIM2CH1_CAPTURE_STA[sel]|=0X80;		//标记成功捕获到一次上升沿
+				now_dj[sel] = micros();  //读取时间
+				if( now_dj[sel] <lastUpdate_dj[sel]){cnt_sample1 =  ((float)( now_dj[sel]  + (0xffff- lastUpdate_dj[sel])) );}
+				else	{ cnt_sample1 =  ((float)( now_dj[sel]  - lastUpdate_dj[sel])); }
+				pos[sel]=cnt_sample1;
+				if(pos[sel]>max_encoder_cal)
+					max_encoder_cal=pos[sel];
+				attitude[sel]=Moving_Median(4,5,LIMIT(pos[sel],0,MAX_ENCODER)/MAX_ENCODER*360);
+		   	TIM_OC1PolarityConfig(TIM8,TIM_ICPolarity_Rising); //CC1P=0 设置为上升沿捕获
+			}else  								//还未开始,第一次捕获上升沿
+			{
+				TIM2CH1_CAPTURE_STA[sel]=0;			//清空
+				TIM2CH1_CAPTURE_VAL[sel]=0;
+	 			lastUpdate_dj[sel] =  micros();
+				TIM2CH1_CAPTURE_STA[sel]|=0X40;		//标记捕获到了上升沿
+		   	TIM_OC1PolarityConfig(TIM8,TIM_ICPolarity_Falling);		//CC1P=1 设置为下降沿捕获
+			}		 
+		}			     	    					   
+ 	}
+//
+	sel=1;
+ 	if((TIM2CH1_CAPTURE_STA[sel]&0X80)==0)//还未成功捕获	
+	{	  
+		if (TIM_GetITStatus(TIM8, TIM_IT_Update) != RESET)
+		 
+		{	    
+			if(TIM2CH1_CAPTURE_STA[sel]&0X40)//已经捕获到高电平了
+			{
+				if((TIM2CH1_CAPTURE_STA[sel]&0X3F)==0X3F)//高电平太长了
+				{
+					TIM2CH1_CAPTURE_STA[sel]|=0X80;//标记成功捕获了一次
+					TIM2CH1_CAPTURE_VAL[sel]=0XFFFF;
+				}else TIM2CH1_CAPTURE_STA[sel]++;
+			}	
+    	
+		}
+	if (TIM_GetITStatus(TIM8, TIM_IT_CC2) != RESET)//捕获1发生捕获事件
+		{	
+			if(TIM2CH1_CAPTURE_STA[sel]&0X40)		//捕获到一个下降沿 		
+			{	  			
+				TIM2CH1_CAPTURE_STA[sel]|=0X80;		//标记成功捕获到一次上升沿
+				now_dj[sel] = micros();  //读取时间
+				if( now_dj[sel] <lastUpdate_dj[sel]){cnt_sample1 =  ((float)( now_dj[sel]  + (0xffff- lastUpdate_dj[sel])) );}
+				else	{ cnt_sample1 =  ((float)( now_dj[sel]  - lastUpdate_dj[sel])); }
+				pos[sel]=cnt_sample1;
+				if(pos[sel]>max_encoder_cal)
+				max_encoder_cal=pos[sel];
+				dt_encoder_update=(float)Get_Cycle_T(DT_ENCODER)/1000000.;
+				attitude[sel]=Moving_Median(5,10,LIMIT(pos[sel],0,MAX_ENCODER)/MAX_ENCODER*360);
+        rad[sel]=Moving_Median(1,5,(attitude[sel]-att_reg[sel]));
+				att_reg[sel]=attitude[sel];
+		   	TIM_OC2PolarityConfig(TIM8,TIM_ICPolarity_Rising); //CC1P=0 设置为上升沿捕获
+			}else  								//还未开始,第一次捕获上升沿
+			{
+				TIM2CH1_CAPTURE_STA[sel]=0;			//清空
+				TIM2CH1_CAPTURE_VAL[sel]=0;
+	 			lastUpdate_dj[sel] =  micros();
+				TIM2CH1_CAPTURE_STA[sel]|=0X40;		//标记捕获到了上升沿
+		   	TIM_OC2PolarityConfig(TIM8,TIM_ICPolarity_Falling);		//CC1P=1 设置为下降沿捕获
+			}		 
+   
+		}			     	    					   
+ 	}
+//
+	sel=2;
+ 	if((TIM2CH1_CAPTURE_STA[sel]&0X80)==0)//还未成功捕获	
+	{	  
+		if (TIM_GetITStatus(TIM8, TIM_IT_Update) != RESET)
+		 
+		{	    
+			if(TIM2CH1_CAPTURE_STA[sel]&0X40)//已经捕获到高电平了
+			{
+				if((TIM2CH1_CAPTURE_STA[sel]&0X3F)==0X3F)//高电平太长了
+				{
+					TIM2CH1_CAPTURE_STA[sel]|=0X80;//标记成功捕获了一次
+					TIM2CH1_CAPTURE_VAL[sel]=0XFFFF;
+				}else TIM2CH1_CAPTURE_STA[sel]++;
+			}	
+    	
+		}
+	if (TIM_GetITStatus(TIM8, TIM_IT_CC3) != RESET)//捕获1发生捕获事件
+		{	
+			if(TIM2CH1_CAPTURE_STA[sel]&0X40)		//捕获到一个下降沿 		
+			{	  			
+				TIM2CH1_CAPTURE_STA[sel]|=0X80;		//标记成功捕获到一次上升沿
+				now_dj[sel] = micros();  //读取时间
+				if( now_dj[sel] <lastUpdate_dj[sel]){cnt_sample1 =  ((float)( now_dj[sel]  + (0xffff- lastUpdate_dj[sel])) );}
+				else	{ cnt_sample1 =  ((float)( now_dj[sel]  - lastUpdate_dj[sel])); }
+				pos[sel]=cnt_sample1;
+				if(pos[sel]>max_encoder_cal)
+				max_encoder_cal=pos[sel];
+				attitude[sel]=Moving_Median(6,5,LIMIT(pos[sel],0,MAX_ENCODER)/MAX_ENCODER*360);
+		   	TIM_OC3PolarityConfig(TIM8,TIM_ICPolarity_Rising); //CC1P=0 设置为上升沿捕获
+			}else  								//还未开始,第一次捕获上升沿
+			{
+				TIM2CH1_CAPTURE_STA[sel]=0;			//清空
+				TIM2CH1_CAPTURE_VAL[sel]=0;
+	 			lastUpdate_dj[sel] =  micros();
+				TIM2CH1_CAPTURE_STA[sel]|=0X40;		//标记捕获到了上升沿
+		   	TIM_OC3PolarityConfig(TIM8,TIM_ICPolarity_Falling);		//CC1P=1 设置为下降沿捕获
+			}		 
+   
+		}			     	    					   
+ 	}	
+	
+	if(max_encoder_cal>2000)
+  max_encoder_cal=0;
+	
+ TIM_ClearITPendingBit(TIM8, TIM_IT_Update|TIM_IT_CC1|TIM_IT_CC2|TIM_IT_CC3|TIM_IT_CC4); //清除中断标志位		
+	
+}
