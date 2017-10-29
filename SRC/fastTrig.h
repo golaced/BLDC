@@ -44,7 +44,7 @@
 #define FASTTRIG_H_
 
 //#include <stdint.h>
-#define SINARRAYSIZE 1024
+#define SINARRAYSIZE 4096
 #define SINARRAYSCALE 32767
 
 extern short int sinDataI16[];

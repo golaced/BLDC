@@ -9,7 +9,7 @@
 #pragma once
 
 ///////////////////////////////////////////////////////////////////////////////
-
+#include "stm32f10x.h"
 extern unsigned int IrqCntUart4;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -59,5 +59,28 @@ void TestUart4Buffer(void);
 ///////////////////////////////////////////////////////////////////////////////
 
 void UART4_IRQHandler(void);
+
+
+typedef struct int16_rcget{
+	      u16 lose_cnt,lose_cnt_rx;
+	      u8 connect,reset;
+	      u8 en_bldc[3];
+	      u8 en_bldc_force[3];
+	      u8 power[3];
+	      float attitude[3];
+	      float rad[3];
+	      float exp_att[3],exp_rad[3];
+	      u16 encoder_loss[3],en_code_connect[3];
+        }BLDC;
+
+extern BLDC bldc;
+
+void Send_BLDC(void);				
+				
+#define BYTE0(dwTemp)       (*(char *)(&dwTemp))
+#define BYTE1(dwTemp)       (*((char *)(&dwTemp) + 1))
+#define BYTE2(dwTemp)       (*((char *)(&dwTemp) + 2))
+#define BYTE3(dwTemp)       (*((char *)(&dwTemp) + 3))
+	
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -87,23 +87,59 @@ float autoPan(float motorPos, float setpoint)
 ///////////////////////////////////////////////////////////////////////////////
 // Compute Motor Commands
 ///////////////////////////////////////////////////////////////////////////////
-float spd[3]={0,0,0};
+
+float exp_angle[3]={90,90};
+float exp_rad[3]={0};
+float kp=8.8;
+float ki=3.6;
+void position_control(float dt)
+{ u8 i;
+  float ero[3];
+	static float interge[3];
+	static float ero_reg[3];
+	if(ki==0)
+		interge[0]=interge[1]=interge[2]=0;
+		if(eepromConfig.pitchEnabled||!bldc.en_code_connect[PITCH])
+		interge[0]=0;
+		if(eepromConfig.rollEnabled||!bldc.en_code_connect[ROLL])
+		interge[1]=0;
+		if(eepromConfig.yawEnabled||!bldc.en_code_connect[YAW])
+		interge[2]=0;
+	for(i=0;i<3;i++)
+	{
+	  ero[i]=LIMIT(exp_angle[i]-attitude[i],-99,99);
+		interge[i]+=ero[i]*dt*ki;
+		if(bldc.en_code_connect[i])
+		exp_rad[i]=LIMIT(ero[i]*kp+interge[i],-255,255);	
+		else
+	  exp_rad[i]=0;
+		ero_reg[i]=ero[i];
+	}
+}	
+
+
+float spd[3]={0,0,0},exp_rad[3],exp_angle[3];
 float spd_out[3]={0},spd_out_flt[3]={0};
-float flt=0.68;
+float flt=0.3;
 void computeMotorCommands(float dt)
 {
     holdIntegrators = false;//ÆôÓÃ»ý·Ö×÷ÓÃ
 
     ///////////////////////////////////
-
+	
+    position_control(dt);
+	
     if (eepromConfig.rollEnabled == true)//Èç¹ûÊ¹ÄÜÁË ¹ö×ªÖá£¨ROLL£©
     {
-			//¸üÐÂPID£¬½á¹û·Åµ½pidCmd[ROLL]
-        pidCmd[ROLL] = updatePID(pointingCmd[ROLL] * mechanical2electricalDegrees[ROLL],
-                                 -sensors.margAttitude500Hz[ROLL] * mechanical2electricalDegrees[ROLL],
+//			//¸üÐÂPID£¬½á¹û·Åµ½pidCmd[ROLL]
+//        pidCmd[ROLL] = updatePID(pointingCmd[ROLL] * mechanical2electricalDegrees[ROLL],
+//                                 -sensors.margAttitude500Hz[ROLL] * mechanical2electricalDegrees[ROLL],
+//                                 dt, holdIntegrators, 
+//                                 &eepromConfig.PID[ROLL_PID]);//mechanical2electricalDegrees = motor poles/2   14poles/2=7
+			 pidCmd[ROLL] = updatePID(exp_angle[ROLL] * mechanical2electricalDegrees[ROLL]*D2R,
+                                 attitude[ROLL] * mechanical2electricalDegrees[ROLL]*D2R,
                                  dt, holdIntegrators, 
                                  &eepromConfig.PID[ROLL_PID]);//mechanical2electricalDegrees = motor poles/2   14poles/2=7
-			
 			//µ±Ç°PIDÊä³ö¼õÈ¥ÉÏ´ÎPIDÊä³öµÃµ½±ä»¯Á¿
         outputRate[ROLL] = pidCmd[ROLL] - pidCmdPrev[ROLL];
 
@@ -119,9 +155,9 @@ void computeMotorCommands(float dt)
 					 spd_out[ROLL]-=dt*spd[ROLL];
 				 else 
 					 spd_out[ROLL]+=dt*exp_rad[ROLL];
-         spd_out_flt[ROLL]= spd_out[ROLL]*flt+(1-flt)*spd_out_flt[ROLL];
+         spd_out_flt[ROLL]= (spd_out[ROLL]*1+pidCmd[ROLL]*0)*flt+(1-flt)*spd_out_flt[ROLL];
          setRollMotor(spd_out_flt[ROLL], (int)eepromConfig.rollPower);// roll power is 50 in default 				 
-			
+			   //setRollMotor(pidCmd[ROLL], (int)eepromConfig.rollPower);// roll power is 50 in default 	
     }
 
     ///////////////////////////////////
@@ -143,11 +179,13 @@ void computeMotorCommands(float dt)
 					//	Ïàµ±ÓÚ¼ÓÉÏÕâ¸öÊýµÄÕýÖµ£©£¬×÷Îª±¾´ÎPID½á¹û
 
         pidCmdPrev[PITCH] = pidCmd[PITCH];//±£´æ±¾´ÎPIDÊä³ö½á¹ûµ½ pidCmdPrev[PITCH] ×÷Îª¾ÉµÄÖµ£¨Ïà¶ÔÓÚÏÂ´Î£©¡£
-    if(spd[PITCH]!=0){spd_out[PITCH]-=dt*spd[PITCH];
-					setPitchMotor(spd_out[PITCH], (int)eepromConfig.pitchPower);// roll power is 50 in default 
-				 }else {spd_out[PITCH]+=dt*exp_rad[PITCH];
-				  setRollMotor(spd_out[PITCH], (int)eepromConfig.pitchPower);// roll power is 50 in default
-         }			
+    if(spd[PITCH]!=0)
+					 spd_out[PITCH]-=dt*spd[PITCH];
+				 else 
+					 spd_out[PITCH]+=dt*exp_rad[PITCH];
+         spd_out_flt[PITCH]= (spd_out[PITCH]*1+pidCmd[PITCH]*0)*flt+(1-flt)*spd_out_flt[PITCH];
+         setPitchMotor(spd_out_flt[PITCH], (int)eepromConfig.pitchPower);// roll power is 50 in default 				 
+			   //setPitchMotor(pidCmd[PITCH], (int)eepromConfig.pitchPower);// roll power is 50 in default 			
     }
 
     ///////////////////////////////////
@@ -173,12 +211,14 @@ void computeMotorCommands(float dt)
             pidCmd[YAW] = pidCmdPrev[YAW] - eepromConfig.rateLimit;//ÄÇÃ´Ê¹ÓÃÉÏ´ÎPIDÊä³ö½á¹û-Ðý×ªËÙ¶ÈÏÞÖÆµÄ×îÐ¡Öµ£¨¼õÈ¥Ò»¸ö¸ºÊý
 					//	Ïàµ±ÓÚ¼ÓÉÏÕâ¸öÊýµÄÕýÖµ£©£¬×÷Îª±¾´ÎPID½á¹û
 
-        pidCmdPrev[YAW] = pidCmd[YAW];//±£´æ±¾´ÎPIDÊä³ö½á¹ûµ½ pidCmdPrev[PITCH] ×÷Îª¾ÉµÄÖµ£¨Ïà¶ÔÓÚÏÂ´Î£©¡£
-       if(spd[YAW]!=0){spd_out[YAW]-=dt*spd[YAW];
-					setYawMotor(spd_out[YAW], (int)eepromConfig.yawPower);// roll power is 50 in default 
-				 }
-				// else
-       // setYawMotor(pidCmd[YAW], (int)eepromConfig.yawPower);
+        pidCmdPrev[YAW] = pidCmd[YAW];//±£´æ±¾´ÎPIDÊä³ö½á¹ûµ½ pidCmdPrev[PITCH] ×÷Îª¾ÉµÄÖµ£¨Ïà¶ÔÓÚÏÂ´Î£©¡££
+    if(spd[YAW]!=0)
+					 spd_out[YAW]-=dt*spd[YAW];
+				 else 
+					 spd_out[YAW]+=dt*exp_rad[YAW];
+         spd_out_flt[YAW]= (spd_out[YAW]*1+pidCmd[YAW]*0)*flt+(1-flt)*spd_out_flt[YAW];
+         setYawMotor(spd_out_flt[YAW], (int)eepromConfig.yawPower);// roll power is 50 in default 				 
+			   //setYawMotor(pidCmd[YAW], (int)eepromConfig.yawPower);// roll power is 50 in default 	
     }
 
     ///////////////////////////////////

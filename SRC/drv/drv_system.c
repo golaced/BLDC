@@ -132,7 +132,7 @@ void SysTick_Handler(void)
         {
             frame_500Hz = true;
 
-            //readMPU6050();
+            readMPU6050();
 
             accelData500Hz[XAXIS] = rawAccel[XAXIS].value;
             accelData500Hz[YAXIS] = rawAccel[YAXIS].value;
@@ -278,51 +278,52 @@ void systemInit(void)
 
     pwmMotorDriverInit();
 
-    //cliInit();
+    cliInit();
     gpioInit();
 
     LED2_ON;
 
     // Luke Liu delay(10000);  // 10 seconds of 20 second delay for sensor stabilization
-//    delay(1000);  // 10 seconds of 20 second delay for sensor stabilization
+    delay(100);  // 10 seconds of 20 second delay for sensor stabilization
 
-//    if (GetVCPConnectMode() != eVCPConnectReset)
-//    {
-//        cliPrintF("\r\nUSB startup delay...\r\n");
-//        delay(1000);
+    if (GetVCPConnectMode() != eVCPConnectReset)
+    {
+        cliPrintF("\r\nUSB startup delay...\r\n");
+        delay(100);
 
-//        if (GetVCPConnectMode() == eVCPConnectData)
-//        {
-//            cliPrintF("\r\nBGC32 firmware starting up, USB connected...\r\n");
-//        }
-//    }
-//    else
-//    {
-//        cliPrintF("\r\nDelaying for usb/serial driver to settle\r\n");
-//        delay(1000);
-//        cliPrintF("\r\nBGC32 firmware starting up, serial active...\r\n");
-//    }
+        if (GetVCPConnectMode() == eVCPConnectData)
+        {
+            cliPrintF("\r\nBGC32 firmware starting up, USB connected...\r\n");
+        }
+    }
+    else
+    {
+        cliPrintF("\r\nDelaying for usb/serial driver to settle\r\n");
+        delay(100);
+        cliPrintF("\r\nBGC32 firmware starting up, serial active...\r\n");
+    }
 
 #if defined(__DATE__) && defined(__TIME__)
     // Luke Liu cliPrintF("\nBGC32 Firmware v%s, Build Date " __DATE__ " "__TIME__" \n", __BGC32_VERSION);
     cliPrintF("%s", __BGC32_VERSION_EH);
 #endif
 
-//    if ((RCC->CR & RCC_CR_HSERDY) != RESET)
-//    {
-//        cliPrintF("\nRunning on external HSE clock, clock rate is %dMHz\n", SystemCoreClock / 1000000);
-//    }
-//    else
-//    {
-//        cliPrintF("\nERROR: Running on internal HSI clock, clock rate is %dMHz\n", SystemCoreClock / 1000000);
-//    }
+    if ((RCC->CR & RCC_CR_HSERDY) != RESET)
+    {
+        cliPrintF("\nRunning on external HSE clock, clock rate is %dMHz\n", SystemCoreClock / 1000000);
+    }
+    else
+    {
+        cliPrintF("\nERROR: Running on internal HSI clock, clock rate is %dMHz\n", SystemCoreClock / 1000000);
+    }
 
-    delay(1000);  // Remaining 10 seconds of 20 second delay for sensor stabilization - probably not long enough..
+    delay(100);  // Remaining 10 seconds of 20 second delay for sensor stabilization - probably not long enough..
 
     LED1_ON;
 
-    //i2cInit(I2C2);
+    i2cInit(I2C2);
     //rcInit();
+		TIM8_Cap_Init(0xffff,72-1);
     timingFunctionsInit();
 
     BKPInit();
@@ -330,10 +331,10 @@ void systemInit(void)
     initFirstOrderFilter();
     initPID();
     initSinArray();
-    TIM8_Cap_Init(0XFFFF,72-1);
-    //orientIMU();
 
-    //initMPU6050();
+    orientIMU();
+
+    initMPU6050();
     // initMag();
 }
 

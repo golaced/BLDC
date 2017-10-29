@@ -40,6 +40,24 @@
 // Timing Functions Initialization
 ///////////////////////////////////////////////////////////////////////////////
 #include "stm32f10x.h"
+void timingFunctionsInit(void)
+{
+    TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
+
+    // Output timers
+
+    TIM_TimeBaseStructure.TIM_Period            = 0xFFFF;              // Just roll over counter at max value
+    TIM_TimeBaseStructure.TIM_Prescaler         = 36 - 1;              // 72 MHz / 36 = 2 MHz = 0.5 uSec Tick
+    TIM_TimeBaseStructure.TIM_ClockDivision     = TIM_CKD_DIV1;
+    TIM_TimeBaseStructure.TIM_CounterMode       = TIM_CounterMode_Up;
+    TIM_TimeBaseStructure.TIM_RepetitionCounter = 0x0000;
+
+    TIM_TimeBaseInit(TIM6, &TIM_TimeBaseStructure);
+
+    TIM_SetCounter(TIM6, 4000);  // First pass value
+}
+
+
 
 #define GET_TIME_NUM 20
 volatile float Cycle_T[GET_TIME_NUM][3];
@@ -68,25 +86,4 @@ void Cycle_Time_Init()
 	}
 
 }
-
-void timingFunctionsInit(void)
-{
-    TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
-
-    // Output timers
-
-    TIM_TimeBaseStructure.TIM_Period            = 0xFFFF;              // Just roll over counter at max value
-    TIM_TimeBaseStructure.TIM_Prescaler         = 36 - 1;              // 72 MHz / 36 = 2 MHz = 0.5 uSec Tick
-    TIM_TimeBaseStructure.TIM_ClockDivision     = TIM_CKD_DIV1;
-    TIM_TimeBaseStructure.TIM_CounterMode       = TIM_CounterMode_Up;
-    TIM_TimeBaseStructure.TIM_RepetitionCounter = 0x0000;
-
-    TIM_TimeBaseInit(TIM6, &TIM_TimeBaseStructure);
-
-    TIM_SetCounter(TIM6, 4000);  // First pass value
-	  Cycle_Time_Init();
-}
-
-
-
 ///////////////////////////////////////////////////////////////////////////////

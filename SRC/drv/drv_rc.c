@@ -152,7 +152,7 @@ uint16_t rxRead(uint8_t channel)
         return 3000;
 }
 
-///////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////ENCODER/////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -241,8 +241,8 @@ float dt_encoder_update;
 void TIM8_CC_IRQHandler(void)
 { 
 	static float att_reg[4];
-  u8 sel=0;
-	
+  u8 sel=ROLL;
+	 __disable_irq_nested();
  	if((TIM2CH1_CAPTURE_STA[sel]&0X80)==0)//还未成功捕获	
 	{	  
 		if (TIM_GetITStatus(TIM8, TIM_IT_Update) != RESET)
@@ -269,7 +269,9 @@ void TIM8_CC_IRQHandler(void)
 				pos[sel]=cnt_sample1;
 				if(pos[sel]>max_encoder_cal)
 					max_encoder_cal=pos[sel];
-				attitude[sel]=Moving_Median(4,5,LIMIT(pos[sel],0,MAX_ENCODER)/MAX_ENCODER*360);
+				bldc.attitude[sel]=attitude[sel]=Moving_Median(4,5,LIMIT(pos[sel],0,MAX_ENCODER)/MAX_ENCODER*360);
+				bldc.en_code_connect[sel]=1;
+				bldc.encoder_loss[sel]=0;
 		   	TIM_OC1PolarityConfig(TIM8,TIM_ICPolarity_Rising); //CC1P=0 设置为上升沿捕获
 			}else  								//还未开始,第一次捕获上升沿
 			{
@@ -282,7 +284,7 @@ void TIM8_CC_IRQHandler(void)
 		}			     	    					   
  	}
 //
-	sel=1;
+	sel=PITCH;
  	if((TIM2CH1_CAPTURE_STA[sel]&0X80)==0)//还未成功捕获	
 	{	  
 		if (TIM_GetITStatus(TIM8, TIM_IT_Update) != RESET)
@@ -310,9 +312,12 @@ void TIM8_CC_IRQHandler(void)
 				if(pos[sel]>max_encoder_cal)
 				max_encoder_cal=pos[sel];
 				dt_encoder_update=(float)Get_Cycle_T(DT_ENCODER)/1000000.;
-				attitude[sel]=Moving_Median(5,10,LIMIT(pos[sel],0,MAX_ENCODER)/MAX_ENCODER*360);
+				bldc.attitude[sel]=attitude[sel]=Moving_Median(5,5,LIMIT(pos[sel],0,MAX_ENCODER)/MAX_ENCODER*360);
+				//attitude[sel]=LIMIT(pos[sel],0,MAX_ENCODER)/MAX_ENCODER*360;
         rad[sel]=Moving_Median(1,5,(attitude[sel]-att_reg[sel]));
 				att_reg[sel]=attitude[sel];
+				bldc.en_code_connect[sel]=1;
+				bldc.encoder_loss[sel]=0;
 		   	TIM_OC2PolarityConfig(TIM8,TIM_ICPolarity_Rising); //CC1P=0 设置为上升沿捕获
 			}else  								//还未开始,第一次捕获上升沿
 			{
@@ -326,7 +331,7 @@ void TIM8_CC_IRQHandler(void)
 		}			     	    					   
  	}
 //
-	sel=2;
+	sel=YAW;
  	if((TIM2CH1_CAPTURE_STA[sel]&0X80)==0)//还未成功捕获	
 	{	  
 		if (TIM_GetITStatus(TIM8, TIM_IT_Update) != RESET)
@@ -353,7 +358,9 @@ void TIM8_CC_IRQHandler(void)
 				pos[sel]=cnt_sample1;
 				if(pos[sel]>max_encoder_cal)
 				max_encoder_cal=pos[sel];
-				attitude[sel]=Moving_Median(6,5,LIMIT(pos[sel],0,MAX_ENCODER)/MAX_ENCODER*360);
+				bldc.attitude[sel]=attitude[sel]=Moving_Median(6,5,LIMIT(pos[sel],0,MAX_ENCODER)/MAX_ENCODER*360);
+				bldc.en_code_connect[sel]=1;
+				bldc.encoder_loss[sel]=0;
 		   	TIM_OC3PolarityConfig(TIM8,TIM_ICPolarity_Rising); //CC1P=0 设置为上升沿捕获
 			}else  								//还未开始,第一次捕获上升沿
 			{
@@ -371,5 +378,5 @@ void TIM8_CC_IRQHandler(void)
   max_encoder_cal=0;
 	
  TIM_ClearITPendingBit(TIM8, TIM_IT_Update|TIM_IT_CC1|TIM_IT_CC2|TIM_IT_CC3|TIM_IT_CC4); //清除中断标志位		
-	
+	 __enable_irq_nested();
 }
