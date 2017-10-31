@@ -268,12 +268,14 @@ void systemInit(void)
 #ifdef _DTIMING
     timingSetup();
 #endif
-
+    ExtINTConfig();
+	
+	  Adc_Init();
     ///////////////////////////////////////////////////////////////////////////
 
     checkFirstTime(false);
     readEEPROM();
-
+     
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);  // 2 bits for pre-emption priority, 2 bits for subpriority
 
     pwmMotorDriverInit();

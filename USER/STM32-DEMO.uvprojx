@@ -311,7 +311,7 @@
           <Cads>
             <interw>1</interw>
             <Optim>1</Optim>
-            <oTime>0</oTime>
+            <oTime>1</oTime>
             <SplitLS>0</SplitLS>
             <OneElfS>0</OneElfS>
             <Strict>0</Strict>
@@ -319,7 +319,7 @@
             <PlainCh>0</PlainCh>
             <Ropi>0</Ropi>
             <Rwpi>0</Rwpi>
-            <wLevel>0</wLevel>
+            <wLevel>1</wLevel>
             <uThumb>0</uThumb>
             <uSurpInc>0</uSurpInc>
             <uC99>1</uC99>
@@ -393,14 +393,19 @@
               <FilePath>.\main.c</FilePath>
             </File>
             <File>
-              <FileName>stm32f10x_it.c</FileName>
+              <FileName>drv_rc.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\stm32f10x_it.c</FilePath>
+              <FilePath>..\SRC\drv\drv_rc.c</FilePath>
             </File>
             <File>
-              <FileName>usart1.c</FileName>
+              <FileName>drv_system.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\usart1.c</FilePath>
+              <FilePath>..\SRC\drv\drv_system.c</FilePath>
+            </File>
+            <File>
+              <FileName>computeMotorCommands.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\SRC\computeMotorCommands.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -543,14 +548,19 @@
           <GroupName>SRC</GroupName>
           <Files>
             <File>
+              <FileName>stm32f10x_it.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\stm32f10x_it.c</FilePath>
+            </File>
+            <File>
+              <FileName>usart1.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\usart1.c</FilePath>
+            </File>
+            <File>
               <FileName>pid.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\SRC\pid.c</FilePath>
-            </File>
-            <File>
-              <FileName>computeMotorCommands.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\SRC\computeMotorCommands.c</FilePath>
             </File>
             <File>
               <FileName>config.c</FileName>
@@ -621,16 +631,6 @@
               <FileName>drv_pwmMotors.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\SRC\drv\drv_pwmMotors.c</FilePath>
-            </File>
-            <File>
-              <FileName>drv_rc.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\SRC\drv\drv_rc.c</FilePath>
-            </File>
-            <File>
-              <FileName>drv_system.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\SRC\drv\drv_system.c</FilePath>
             </File>
             <File>
               <FileName>drv_timingFunctions.c</FileName>

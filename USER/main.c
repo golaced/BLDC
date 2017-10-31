@@ -61,6 +61,8 @@ uint16_t       timerValue;
 ///////////////////////////////////////////////////////////////////////////////
 u8 test[4];
 float rad_sin=111;
+float bat;
+float k_bat=1.168;
 int main(void)
 {
     uint32_t currentTime;
@@ -70,7 +72,10 @@ int main(void)
     initOrientation();
 
     systemReady = true;
-
+		eepromConfig.pitchEnabled=false;
+		eepromConfig.rollEnabled=false;		
+		eepromConfig.yawEnabled=false;
+	  bldc.power[0]=bldc.power[1]=bldc.power[2]=55;
     while (1)
     {
         ///////////////////////////////
@@ -93,7 +98,7 @@ int main(void)
         if (frame_10Hz)
         {
             frame_10Hz = false;
-
+            
             currentTime      = micros();
             deltaTime10Hz    = currentTime - previous10HzTime;
             previous10HzTime = currentTime;
@@ -107,7 +112,8 @@ int main(void)
             // HJI     newMagData = false;
             // HJI     magDataUpdate = true;
             // HJI }
-
+            bldc.bat=bat=Moving_Median(9,10,16.01/2614*Get_Adc(5))*0.1+0.9*bat;
+					  bldc.gain_bat=LIMIT(4.2*4/(bat+0.0001)*k_bat,1,1.5);
             cliCom();//接收来自串口的命令并处理
             static float angle;
 						if(test[1])
@@ -222,9 +228,9 @@ int main(void)
 						eepromConfig.pitchEnabled=bldc.en_bldc[0];
 						eepromConfig.rollEnabled=bldc.en_bldc[1];		
 						eepromConfig.yawEnabled=bldc.en_bldc[2];
-						eepromConfig.pitchPower=LIMIT(bldc.power[0],0,100);
-						eepromConfig.rollPower= LIMIT(bldc.power[1],0,100);		
-						eepromConfig.yawPower=  LIMIT(bldc.power[2],0,100);	
+						eepromConfig.pitchPower=LIMIT(bldc.power[0],0,68);
+						eepromConfig.rollPower= LIMIT(bldc.power[1],0,68);		
+						eepromConfig.yawPower=  LIMIT(bldc.power[2],0,68);	
             if(bldc.exp_rad[0]!=0)
             spd[0]=	bldc.exp_rad[0]*57.3;						
 						if(bldc.exp_rad[1]!=0)
@@ -241,6 +247,13 @@ int main(void)
 						if(bldc.reset){bldc.reset=0;
 							eepromConfig.pitchEnabled=eepromConfig.yawEnabled=eepromConfig.rollEnabled=0;
 						}
+						if(eepromConfig.pitchEnabled==false)
+						eepromConfig.pitchPower=0;
+						if(eepromConfig.rollEnabled==false)
+						eepromConfig.rollPower=0;
+						if(eepromConfig.yawEnabled==false)
+						eepromConfig.yawPower=0;
+						
             executionTime100Hz = micros() - currentTime;
         }
 
@@ -274,9 +287,9 @@ int main(void)
 						if(test[0])
 						{
 						if(flag)
-						exp_angle[0]=exp_angle[1]=90;
+						exp_angle[0]=exp_angle[1]=88;
 						else
-						exp_angle[0]=exp_angle[1]=90+180;	
+						exp_angle[0]=exp_angle[1]=88+180;	
 						flag=!flag;
 						}
 						if(bldc.lose_cnt++>2)

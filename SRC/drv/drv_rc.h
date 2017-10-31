@@ -21,6 +21,9 @@ extern u8  TIM2CH1_CAPTURE_STA[4];	//输入捕获状态
 extern u16	TIM2CH1_CAPTURE_VAL[4];	//输入捕获值
 extern float attitude[3];
 extern float exp_angle[3];
+void ExtINTConfig(void);
+void  Adc_Init(void);
+u16 Get_Adc(u8 ch);
 #define ABS(x) ( (x)>0?(x):-(x) )
 #define LIMIT( x,min,max ) ( (x) < (min)  ? (min) : ( (x) > (max) ? (max) : (x) ) )
 #define _MIN(a, b) ((a) < (b) ? (a) : (b))

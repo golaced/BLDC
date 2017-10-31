@@ -309,6 +309,21 @@ void Send_BLDC(void)
 	_temp = (vs16)(bldc.attitude[2]*10);
 	data_to_send[_cnt++]=BYTE1(_temp);
 	data_to_send[_cnt++]=BYTE0(_temp);
+	_temp = (vs16)(bldc.rad[0]*10);
+	data_to_send[_cnt++]=BYTE1(_temp);
+	data_to_send[_cnt++]=BYTE0(_temp);
+	_temp = (vs16)(bldc.rad[1]*10);
+	data_to_send[_cnt++]=BYTE1(_temp);
+	data_to_send[_cnt++]=BYTE0(_temp);
+	_temp = (vs16)(bldc.rad[2]*10);
+	data_to_send[_cnt++]=BYTE1(_temp);
+	data_to_send[_cnt++]=BYTE0(_temp);
+	_temp = (vs16)(bldc.power[0]);
+	data_to_send[_cnt++]=BYTE0(_temp);
+	_temp = (vs16)(bldc.power[1]);
+	data_to_send[_cnt++]=BYTE0(_temp);
+	_temp = (vs16)(bldc.power[2]);
+	data_to_send[_cnt++]=BYTE0(_temp);
 	
 	
 	data_to_send[3] = _cnt-4;

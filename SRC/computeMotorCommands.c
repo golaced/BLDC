@@ -87,15 +87,21 @@ float autoPan(float motorPos, float setpoint)
 ///////////////////////////////////////////////////////////////////////////////
 // Compute Motor Commands
 ///////////////////////////////////////////////////////////////////////////////
+float To_180_degrees(float x)
+{
+	return (x>180?(x-360):(x<-180?(x+360):x));
+}
+
 
 float exp_angle[3]={90,90};
 float exp_rad[3]={0};
-float kp=8.8;
-float ki=3.6;
+float kp=3.68;//8.8;
+float kd=1;
+float ki=1;
+float interge[3];
 void position_control(float dt)
 { u8 i;
   float ero[3];
-	static float interge[3];
 	static float ero_reg[3];
 	if(ki==0)
 		interge[0]=interge[1]=interge[2]=0;
@@ -107,17 +113,19 @@ void position_control(float dt)
 		interge[2]=0;
 	for(i=0;i<3;i++)
 	{
-	  ero[i]=LIMIT(exp_angle[i]-attitude[i],-99,99);
+	  ero[i]=LIMIT(To_180_degrees(exp_angle[i]-attitude[i]),-99,99);
 		interge[i]+=ero[i]*dt*ki;
+		interge[i]=LIMIT(interge[i],-255,255);
 		if(bldc.en_code_connect[i])
-		exp_rad[i]=LIMIT(ero[i]*kp+interge[i],-255,255);	
+		exp_rad[i]=LIMIT(ero[i]*kp,-255,255)+interge[i]+(ero[i]-ero_reg[i])*0.002f/dt*kd;	
 		else
 	  exp_rad[i]=0;
 		ero_reg[i]=ero[i];
+		
 	}
 }	
 
-
+#define MAX_POWER 75
 float spd[3]={0,0,0},exp_rad[3],exp_angle[3];
 float spd_out[3]={0},spd_out_flt[3]={0};
 float flt=0.3;
@@ -156,7 +164,8 @@ void computeMotorCommands(float dt)
 				 else 
 					 spd_out[ROLL]+=dt*exp_rad[ROLL];
          spd_out_flt[ROLL]= (spd_out[ROLL]*1+pidCmd[ROLL]*0)*flt+(1-flt)*spd_out_flt[ROLL];
-         setRollMotor(spd_out_flt[ROLL], (int)eepromConfig.rollPower);// roll power is 50 in default 				 
+				 bldc.power_o[ROLL]=LIMIT((int)eepromConfig.rollPower* bldc.gain_bat,0,MAX_POWER);
+         setRollMotor(spd_out_flt[ROLL],bldc.power_o[ROLL] );// roll power is 50 in default 				 
 			   //setRollMotor(pidCmd[ROLL], (int)eepromConfig.rollPower);// roll power is 50 in default 	
     }
 
@@ -184,7 +193,8 @@ void computeMotorCommands(float dt)
 				 else 
 					 spd_out[PITCH]+=dt*exp_rad[PITCH];
          spd_out_flt[PITCH]= (spd_out[PITCH]*1+pidCmd[PITCH]*0)*flt+(1-flt)*spd_out_flt[PITCH];
-         setPitchMotor(spd_out_flt[PITCH], (int)eepromConfig.pitchPower);// roll power is 50 in default 				 
+				 bldc.power_o[PITCH]=LIMIT((int)eepromConfig.pitchPower* bldc.gain_bat,0,MAX_POWER);
+         setPitchMotor(spd_out_flt[PITCH],  bldc.power_o[PITCH]);// roll power is 50 in default 				 
 			   //setPitchMotor(pidCmd[PITCH], (int)eepromConfig.pitchPower);// roll power is 50 in default 			
     }
 
@@ -217,7 +227,8 @@ void computeMotorCommands(float dt)
 				 else 
 					 spd_out[YAW]+=dt*exp_rad[YAW];
          spd_out_flt[YAW]= (spd_out[YAW]*1+pidCmd[YAW]*0)*flt+(1-flt)*spd_out_flt[YAW];
-         setYawMotor(spd_out_flt[YAW], (int)eepromConfig.yawPower);// roll power is 50 in default 				 
+				 bldc.power_o[YAW]=LIMIT((int)eepromConfig.yawPower* bldc.gain_bat,0,MAX_POWER);
+         setYawMotor(spd_out_flt[YAW], bldc.power_o[YAW]);// roll power is 50 in default 				 
 			   //setYawMotor(pidCmd[YAW], (int)eepromConfig.yawPower);// roll power is 50 in default 	
     }
 

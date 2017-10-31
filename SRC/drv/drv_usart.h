@@ -66,11 +66,12 @@ typedef struct int16_rcget{
 	      u8 connect,reset;
 	      u8 en_bldc[3];
 	      u8 en_bldc_force[3];
-	      u8 power[3];
+	      u8 power[3],power_o[3];
 	      float attitude[3];
 	      float rad[3];
 	      float exp_att[3],exp_rad[3];
 	      u16 encoder_loss[3],en_code_connect[3];
+	      float bat,gain_bat;
         }BLDC;
 
 extern BLDC bldc;

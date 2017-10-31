@@ -59,8 +59,8 @@ extern float   testPhaseDelta;
 
 ///////////////////////////////////////////////////////////////////////////////
 
-#define ROLL     0
-#define PITCH    1
+#define ROLL     1
+#define PITCH    0
 #define YAW      2
 
 #define XAXIS    0
